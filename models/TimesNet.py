@@ -80,6 +80,7 @@ class Model(nn.Module):
         self.seq_len = configs.seq_len
         self.label_len = configs.label_len
         self.pred_len = configs.pred_len
+
         self.model = nn.ModuleList([TimesBlock(configs)
                                     for _ in range(configs.e_layers)])
         self.enc_embedding = DataEmbedding(configs.enc_in, configs.d_model, configs.embed, configs.freq,
@@ -213,3 +214,49 @@ class Model(nn.Module):
             dec_out = self.classification(x_enc, x_mark_enc)
             return dec_out  # [B, N]
         return None
+
+if __name__=="__main__":
+    # Sample data parameters
+    seq_len = 96  # Input sequence length
+    enc_in = 1  # Number of input features
+    batch_size = 1
+
+    # Generate random sample data with an extra batch dimension
+    sample_input = torch.randn(batch_size, seq_len, enc_in)
+
+    # Print sample input
+    print("Sample Input:")
+    print(sample_input)
+
+
+    # Define a simple configuration for TimesNet
+    class SimpleConfig:
+        seq_len = 96
+        label_len = 48
+        pred_len = 24
+        top_k = 5
+        num_kernels = 6
+        enc_in = 1
+        dec_in = 1
+        c_out = 1
+        d_model = 512
+        d_ff = 2048
+        e_layers = 2
+        task_name = 'long_term_forecast'
+        embed = 'timeF'
+        freq = 'h'
+        dropout = 0.1
+
+    args=SimpleConfig()
+    # Create a TimesNet model instance
+    model = Model(args)
+    # Generate mock timestamp embeddings with an extra batch dimension
+    sample_timestamps = torch.randn(batch_size, seq_len, 4)
+
+    # Pass the sample data through the model
+    with torch.no_grad():
+        model_output = model(sample_input, sample_timestamps, None, None)
+
+    # Print the output
+    print("Model Output:")
+    print(model_output)
